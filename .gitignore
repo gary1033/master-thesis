@@ -1,0 +1,57 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+*.egg-info/
+dist/
+build/
+*.egg
+
+# Environment
+.env
+.env.local
+*.env
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Output / Experiment results (too large for git)
+output/
+results/
+logs/
+
+# CodaMosa test-apps (each machine clones independently)
+TestWeaver/codamosa/replication/test-apps/*/
+
+# But keep the CSV files and scripts
+!TestWeaver/codamosa/replication/test-apps/*.csv
+!TestWeaver/codamosa/replication/scripts/
+
+# Docker images (too large)
+*.tar.gz
+*.tar.bz2
+
+# Model files
+*.gguf
+*.bin
+*.safetensors
+
+# Cache
+TestWeaver/cache/
+*.pkl
+
+# Jupyter
+.ipynb_checkpoints/
+
+# Claude settings (local per-machine)
+.claude/

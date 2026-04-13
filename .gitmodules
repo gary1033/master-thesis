@@ -1,0 +1,3 @@
+[submodule "TestWeaver"]
+	path = TestWeaver
+	url = https://github.com/FSoft-AI4Code/TestWeaver.git

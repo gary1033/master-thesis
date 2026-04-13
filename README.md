@@ -14,28 +14,47 @@
 
 ## 環境設定（Setup）
 
-### Step 1：Clone 本 repo（含 TestWeaver submodule）
+### Step 1：Clone 本 repo
+
+<details>
+<summary><b>Windows (Git Bash / PowerShell)</b></summary>
 
 ```bash
-# clone repo，--recurse-submodules 會自動把 TestWeaver submodule 一起拉下來
 git clone --recurse-submodules git@github.com:gary1033/master-thesis.git
 cd master-thesis
+
+# 如果 submodule 沒有自動初始化
+git submodule update --init --recursive
 ```
+
+</details>
+
+<details>
+<summary><b>macOS (Terminal)</b></summary>
+
+```bash
+git clone --recurse-submodules git@github.com:gary1033/master-thesis.git
+cd master-thesis
+
+# 如果 submodule 沒有自動初始化
+git submodule update --init --recursive
+```
+
+</details>
 
 > **這一步做了什麼**：
 > - 下載本 repo（包含 CLAUDE.md 研究規範、參考論文 PDF）
 > - 自動 clone TestWeaver 原版程式碼（作為 git submodule 管理）
 > - 自動 clone CodaMosa submodule 的**目錄結構**（但 test-apps 裡的 benchmark projects 需要 Step 4 另外下載）
 
-如果 submodule 沒有自動初始化，手動執行：
-
-```bash
-git submodule update --init --recursive
-```
+---
 
 ### Step 2：安裝 Python 依賴
 
-```bash
+<details>
+<summary><b>Windows</b></summary>
+
+```powershell
 # 確認 Python 版本（需要 3.10+）
 python --version
 
@@ -45,61 +64,192 @@ pip install -r requirements.txt
 cd ..
 ```
 
+</details>
+
+<details>
+<summary><b>macOS</b></summary>
+
+```bash
+# 確認 Python 版本（需要 3.10+）
+python3 --version
+
+# 建議使用 venv
+python3 -m venv .venv
+source .venv/bin/activate
+
+# 安裝 TestWeaver 的依賴
+cd TestWeaver
+pip install -r requirements.txt
+cd ..
+```
+
+</details>
+
 > **這一步做了什麼**：
 > - 安裝 TestWeaver 需要的 Python 套件（openai, pytest, slipcover 等）
 > - slipcover 是用來測量 code coverage 的工具
 
-### Step 3：設定 LLM API
+---
+
+### Step 3：安裝本地 LLM（Ollama + 開源模型）
+
+#### 3a. 安裝 Ollama
+
+<details>
+<summary><b>Windows</b></summary>
+
+```powershell
+# 方法 1：官網下載安裝檔
+# 到 https://ollama.com/download/windows 下載 OllamaSetup.exe 並安裝
+
+# 方法 2：使用 winget
+winget install Ollama.Ollama
+
+# 安裝後，Ollama 會自動作為背景服務啟動
+# 確認安裝成功：
+ollama --version
+```
+
+</details>
+
+<details>
+<summary><b>macOS</b></summary>
 
 ```bash
-# 在 TestWeaver 目錄下建立 .env 檔案
+# 方法 1：官網下載
+# 到 https://ollama.com/download/mac 下載 Ollama.dmg 並安裝
+
+# 方法 2：使用 Homebrew
+brew install ollama
+
+# 啟動 Ollama 服務（安裝後通常自動啟動）
+ollama serve &
+
+# 確認安裝成功：
+ollama --version
+```
+
+</details>
+
+#### 3b. 下載推薦模型
+
+| 硬體 | 推薦模型 | 大小 | HumanEval | 安裝指令 |
+|------|---------|------|-----------|---------|
+| **RTX 3060 Ti 8GB** | Qwen2.5-Coder-7B | ~4.7GB | ~72% | `ollama pull qwen2.5-coder:7b` |
+| **MacBook M3 Air 16GB** | Qwen2.5-Coder-14B | ~9GB | ~85% | `ollama pull qwen2.5-coder:14b` |
+
+<details>
+<summary><b>Windows (RTX 3060 Ti)</b></summary>
+
+```powershell
+# 下載 7B 模型（約 4.7GB，需要幾分鐘）
+ollama pull qwen2.5-coder:7b
+
+# 驗證模型已下載
+ollama list
+
+# 測試模型能不能跑（生成一個簡單的 pytest）
+ollama run qwen2.5-coder:7b "Write a pytest test for a function that adds two numbers"
+```
+
+</details>
+
+<details>
+<summary><b>macOS (MacBook M3 Air)</b></summary>
+
+```bash
+# 下載 14B 模型（約 9GB，需要幾分鐘）
+ollama pull qwen2.5-coder:14b
+
+# 驗證模型已下載
+ollama list
+
+# 測試模型能不能跑
+ollama run qwen2.5-coder:14b "Write a pytest test for a function that adds two numbers"
+```
+
+</details>
+
+#### 3c. 確認 Ollama API 可用
+
+```bash
+# Ollama 啟動後會在 localhost:11434 提供 OpenAI-compatible API
+curl http://localhost:11434/v1/models
+```
+
+---
+
+### Step 4：設定 LLM 接口
+
+TestWeaver 使用 OpenAI-compatible 接口，**API 和本地模型的接口完全相同**，只需改 `.env`。
+
+#### 三種模式切換（只改 .env）
+
+| 模式 | OPENAI_API_KEY | OPENAI_BASE_URL | model name |
+|------|---------------|-----------------|------------|
+| DeepSeek API | 你的 DeepSeek key | `https://api.deepseek.com/v1` | `deepseek-chat` |
+| 本地 Ollama | `ollama`（隨意填） | `http://localhost:11434/v1` | `qwen2.5-coder:7b` 或 `qwen2.5-coder:14b` |
+| OpenAI GPT | 你的 OpenAI key | `https://api.openai.com/v1` | `gpt-4o` |
+
+<details>
+<summary><b>Windows</b></summary>
+
+```powershell
+# === 本地 Ollama 模式 ===
+@"
+OPENAI_API_KEY=ollama
+OPENAI_BASE_URL=http://localhost:11434/v1
+"@ | Out-File -FilePath TestWeaver\.env -Encoding utf8
+
+# === DeepSeek API 模式 ===
+@"
+OPENAI_API_KEY=sk-your-deepseek-key-here
+OPENAI_BASE_URL=https://api.deepseek.com/v1
+"@ | Out-File -FilePath TestWeaver\.env -Encoding utf8
+```
+
+</details>
+
+<details>
+<summary><b>macOS</b></summary>
+
+```bash
+# === 本地 Ollama 模式 ===
 cat > TestWeaver/.env << 'EOF'
-OPENAI_API_KEY=your-api-key-here
+OPENAI_API_KEY=ollama
+OPENAI_BASE_URL=http://localhost:11434/v1
+EOF
+
+# === DeepSeek API 模式 ===
+cat > TestWeaver/.env << 'EOF'
+OPENAI_API_KEY=sk-your-deepseek-key-here
 OPENAI_BASE_URL=https://api.deepseek.com/v1
 EOF
 ```
 
-> **這一步做了什麼**：
-> - 設定 LLM API 的金鑰和端點
-> - TestWeaver 使用 OpenAI-compatible 介面，**API 和本地模型的接口完全相同**，只需改 .env
-> - 三種模式切換方式（只改 .env，程式碼不用動）：
->
-> | 模式 | OPENAI_API_KEY | OPENAI_BASE_URL |
-> |------|---------------|-----------------|
-> | DeepSeek API | 你的 DeepSeek key | `https://api.deepseek.com/v1` |
-> | 本地 Ollama | `ollama`（隨意填） | `http://localhost:11434/v1` |
-> | OpenAI GPT | 你的 OpenAI key | `https://api.openai.com/v1` |
->
-> - DeepSeek API：到 https://platform.deepseek.com/ 註冊取得 API key
-> - 本地 Ollama：先安裝 [Ollama](https://ollama.com/)，再 `ollama pull qwen2.5-coder:7b`
->
-> **注意**：除了 .env 外，還需要修改程式碼中 hardcoded 的 model name（`deepseek-v3-0324`）。
-> 本地 Ollama 模型名稱格式為 `qwen2.5-coder:7b`。
+</details>
 
-#### 本地模型推薦
+> **注意**：除了 .env 外，還需要修改程式碼中 hardcoded 的 model name。
+> TestWeaver 原始使用 `deepseek-v3-0324`，本地模型需改為 `qwen2.5-coder:7b`。
+> 搜尋位置：`scripts/testweaver.py`、`scripts/ablate.py` 中所有 `model='deepseek-v3-0324'`。
 
-| 硬體 | 推薦模型 | 安裝指令 | HumanEval |
-|------|---------|---------|-----------|
-| RTX 3060 Ti 8GB | Qwen2.5-Coder-7B | `ollama pull qwen2.5-coder:7b` | ~72% |
-| MacBook M3 Air 16GB | Qwen2.5-Coder-14B | `ollama pull qwen2.5-coder:14b` | ~85% |
+---
 
-### Step 4：下載 CodaMosa Benchmark Projects
+### Step 5：下載 CodaMosa Benchmark Projects
 
-CodaMosa 原始候選有 34 個 Python 專案，經篩選後最終 benchmark 為 **27 個 projects / 486 個 modules**。
-篩選掉的 7 個（fastapi, keras, luigi, matplotlib, pandas, scrapy, spaCy）因 timeout、100% 初始覆蓋率等原因排除。
-test-apps 目錄裡可能包含這 7 個，但實驗只使用下列 27 個。
+> **關於 project 數量**：TestWeaver 論文提到「35 open-source Python projects」，這是引用 CodaMosa 論文的原始數字。
+> 實際經過篩選（排除 timeout、100% 初始覆蓋率等），最終 benchmark 為 **27 個 projects / 486 個 modules**。
+> test-apps 目錄可能包含額外的候選 projects（fastapi, keras, luigi 等），但實驗只使用這 27 個。
+
+<details>
+<summary><b>Windows / macOS（指令相同）</b></summary>
 
 ```bash
 cd TestWeaver/codamosa/replication/test-apps
 
 # === Pilot 必須的 3 個 projects ===
-# PySnooper：Python debugger 工具（4 modules，低複雜度，用來驗證系統能跑通）
 git clone --depth 1 https://github.com/cool-RR/PySnooper.git PySnooper
-
-# flutils：Python 工具函式庫（9 modules，中複雜度，主要觀察改善指標）
 git clone --depth 1 https://github.com/ccarballolozano/flutils.git flutils
-
-# typesystem：資料驗證框架（10 modules，CC>350 高複雜度，TestWeaver 論文 Figure 6 案例）
 git clone --depth 1 https://github.com/encode/typesystem.git typesystem
 
 # === 完整實驗需要的其餘 projects ===
@@ -131,11 +281,12 @@ git clone --depth 1 https://github.com/ytdl-org/youtube-dl.git youtube-dl
 cd ../../../..
 ```
 
+</details>
+
 > **這一步做了什麼**：
 > - `--depth 1` = 只下載最新版本（不下載完整歷史，節省空間和時間）
-> - 這 27 個 project 是 CodaMosa (ICSE 2023) 定義的標準 benchmark
+> - 這些 project 不會被推上 git（已在 .gitignore 排除），每台電腦需要獨立 clone
 > - 所有 486 個測試 module 的對應關係記錄在 `codamosa/replication/scripts/modules_base_and_name.csv`
-> - **注意**：這些 project 不會被推上 git（已在 .gitignore 排除），每台電腦需要獨立 clone
 
 ---
 
@@ -143,56 +294,50 @@ cd ../../../..
 
 ### 跑單一 module
 
+<details>
+<summary><b>Windows (Git Bash)</b></summary>
+
 ```bash
 cd TestWeaver/scripts
 export PYTHONPATH=$(pwd)
-
-# sample_id 對應 modules_base_and_name.csv 中的行號（0-indexed）
-# 例如 id=21 對應 tqdm 的某個 module
-export sample_id=21
+export sample_id=0   # 0 = PySnooper 的第一個 module (pysnooper.pycompat)
 python testweaver.py --test-index $sample_id
 ```
 
+</details>
+
+<details>
+<summary><b>macOS</b></summary>
+
+```bash
+cd TestWeaver/scripts
+export PYTHONPATH=$(pwd)
+export sample_id=0
+python3 testweaver.py --test-index $sample_id
+```
+
+</details>
+
 > **這一步做了什麼**：
-> - 對指定的 module 執行 TestWeaver 的完整 3 階段 pipeline：
->   1. **Seed Generation** — 用 LLM 生成初始測試案例
->   2. **Slicing + Generation** — 對未覆蓋行做 backward slicing，再用 LLM 生成目標測試
->   3. **Feedback + Re-generation** — 找最近測試案例 + execution in-lines，讓 LLM 重試
+> - `sample_id` 對應 `modules_base_and_name.csv` 中的行號（0-indexed）
+> - 常用的 pilot module IDs：
+>   - `0-3`：PySnooper（4 modules）
+>   - `30-38`：flutils（9 modules）
 > - 結果輸出到 `output/cm/` 目錄
 
 ### 跑消融實驗
 
+<details>
+<summary><b>Windows / macOS</b></summary>
+
 ```bash
 cd TestWeaver/scripts
 export PYTHONPATH=$(pwd)
-export sample_id=21
-python ablate.py --test-index $sample_id
+export sample_id=0
+python ablate.py --test-index $sample_id   # macOS: python3
 ```
 
-> **這一步做了什麼**：
-> - 對同一個 module 跑 5 種配置：
->   1. 有 slicing
->   2. 無 slicing
->   3. 無 execution in-lines
->   4. 無 closest test
->   5. 完整 TestWeaver
-> - 用來比較各組件的貢獻
-
----
-
-## 執行 CoverUp Baseline
-
-```bash
-# 需要 Docker
-cd TestWeaver/scripts/baselines/coverup
-docker load -i docker/coverup-runner.tar
-python3 scripts/eval_coverup.py --config deepseek-v3 --suite cm --package tqdm
-```
-
-> **這一步做了什麼**：
-> - 在 Docker 容器中跑 CoverUp（另一個 baseline 工具）
-> - `--package tqdm` 指定只跑 tqdm 這個 project（可改成其他 project）
-> - 結果輸出到 `scripts/baselines/coverup/output/`
+</details>
 
 ---
 
@@ -201,27 +346,27 @@ python3 scripts/eval_coverup.py --config deepseek-v3 --suite cm --package tqdm
 ```
 master-thesis/
 ├── README.md              ← 本檔案
-├── CLAUDE.md              ← Claude Code 研究規範（研究目標、實驗規範、進度追蹤規則）
+├── CLAUDE.md              ← Claude Code 研究規範
 ├── .env                   ← API keys（不上傳 git）
-├── .gitignore             ← 排除 __pycache__, .env, output/, test-apps/
+├── .gitignore
 ├── *.pdf                  ← 23 篇參考論文
 │
 ├── TestWeaver/            ← [git submodule] TestWeaver 原版程式碼
 │   ├── scripts/
 │   │   ├── testweaver.py  ← 主 pipeline（Phase 1-3）
 │   │   ├── ablate.py      ← 消融實驗腳本
-│   │   ├── data_utils.py  ← find_closest_test()（closest test 選擇）
-│   │   ├── get_conditional_line.py  ← 控制流分析（哪些 if/while 控制目標行）
+│   │   ├── data_utils.py  ← find_closest_test()
+│   │   ├── get_conditional_line.py  ← 控制流分析
 │   │   ├── utils/codetransform/
 │   │   │   ├── slicing.py     ← backward_slicing()（需擴展 forward）
-│   │   │   ├── utils1.py      ← ExecutionOrderAnalyzer（建構 SDG 程式相依圖）
-│   │   │   └── next.py        ← execute_and_trace()（execution in-lines）
+│   │   │   ├── utils1.py      ← ExecutionOrderAnalyzer（SDG）
+│   │   │   └── next.py        ← execute_and_trace()
 │   │   └── prompt/            ← LLM prompt templates
 │   └── codamosa/replication/
-│       ├── scripts/modules_base_and_name.csv  ← 486 個 module 的對應表
-│       └── test-apps/     ← 27 個 benchmark projects（各機器獨立 clone）
+│       ├── scripts/modules_base_and_name.csv  ← 486 modules 對應表
+│       └── test-apps/     ← 27 個 benchmark projects
 │
-└── WebWeaver/             ← [待建立] 你的改進版本
+└── WebWeaver/             ← [待建立] 改進版本
 ```
 
 ---
@@ -231,28 +376,41 @@ master-thesis/
 ```
 Windows (RTX 3060 Ti)          GitHub                    MacBook (M3 Air)
   開發 + debug            git push/pull              完整實驗 + pilot
-  本地 7B 模型               ↕                       14B 模型 / API
+  Ollama + 7B 模型           ↕                       Ollama + 14B 模型
        ↓                     ↕                            ↓
-  修改程式碼 → push → pull → 跑 35 projects 實驗
+  修改程式碼 → push → pull → 跑 27 projects 實驗
 ```
 
-**Windows 端**：
-```bash
-git add -A && git commit -m "update" && git push
+<details>
+<summary><b>Windows 推送</b></summary>
+
+```powershell
+cd C:\Projects\master-thesis
+git add -A
+git commit -m "update description"
+git push
 ```
 
-**MacBook 端**：
+</details>
+
+<details>
+<summary><b>macOS 拉取</b></summary>
+
 ```bash
+cd ~/Projects/master-thesis
 git pull
-# 如果是第一次，需要先跑 Step 4 clone benchmark projects
+# 第一次需要跑 Step 3 (Ollama) + Step 5 (benchmark projects)
 ```
+
+</details>
 
 ---
 
 ## 參考資料
 
-- [TestWeaver 論文 (ICSE 2026)](https://github.com/FSoft-AI4Code/TestWeaver)
-- [CodaMosa Benchmark (ICSE 2023)](https://github.com/plasma-umass/codamosa)
-- [DeepSeek API](https://platform.deepseek.com/)
-- [Ollama（本地 LLM）](https://ollama.com/)
+- [TestWeaver (ICSE 2026)](https://github.com/FSoft-AI4Code/TestWeaver) — 基礎論文
+- [CodaMosa (ICSE 2023)](https://github.com/plasma-umass/codamosa) — Benchmark
+- [DeepSeek API](https://platform.deepseek.com/) — 主實驗 LLM
+- [Ollama](https://ollama.com/) — 本地 LLM runtime
+- [Qwen2.5-Coder](https://huggingface.co/Qwen/Qwen2.5-Coder-7B-Instruct) — 推薦本地模型
 - 研究筆記：見 Obsidian vault `碩論參考資料/` 資料夾

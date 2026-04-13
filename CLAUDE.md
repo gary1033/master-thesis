@@ -11,7 +11,7 @@
 ## 研究規範
 
 ### Benchmark & Baselines
-- Benchmark: CodaMosa (CM) suite — 27 Python projects, 486 modules, ~100K+ LOC
+- Benchmark: CodaMosa (CM) suite — 27 Python projects (from 34 candidates), 486 modules, ~100K+ LOC
 - Baselines: TestWeaver, CoverUp, CodaMosa
 - Metrics: line coverage, branch coverage, line+branch coverage, token cost, runtime
 

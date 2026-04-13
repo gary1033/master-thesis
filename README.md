@@ -25,7 +25,7 @@ cd master-thesis
 > **這一步做了什麼**：
 > - 下載本 repo（包含 CLAUDE.md 研究規範、參考論文 PDF）
 > - 自動 clone TestWeaver 原版程式碼（作為 git submodule 管理）
-> - 自動 clone TestWeaver 裡的 CodaMosa submodule（benchmark 工具）
+> - 自動 clone CodaMosa submodule 的**目錄結構**（但 test-apps 裡的 benchmark projects 需要 Step 4 另外下載）
 
 如果 submodule 沒有自動初始化，手動執行：
 
@@ -61,13 +61,33 @@ EOF
 
 > **這一步做了什麼**：
 > - 設定 LLM API 的金鑰和端點
-> - TestWeaver 使用 OpenAI-compatible 介面，所以 DeepSeek、GPT、本地 Ollama 都可以用
+> - TestWeaver 使用 OpenAI-compatible 介面，**API 和本地模型的接口完全相同**，只需改 .env
+> - 三種模式切換方式（只改 .env，程式碼不用動）：
+>
+> | 模式 | OPENAI_API_KEY | OPENAI_BASE_URL |
+> |------|---------------|-----------------|
+> | DeepSeek API | 你的 DeepSeek key | `https://api.deepseek.com/v1` |
+> | 本地 Ollama | `ollama`（隨意填） | `http://localhost:11434/v1` |
+> | OpenAI GPT | 你的 OpenAI key | `https://api.openai.com/v1` |
+>
 > - DeepSeek API：到 https://platform.deepseek.com/ 註冊取得 API key
-> - 本地 Ollama：設定 `OPENAI_BASE_URL=http://localhost:11434/v1`
+> - 本地 Ollama：先安裝 [Ollama](https://ollama.com/)，再 `ollama pull qwen2.5-coder:7b`
+>
+> **注意**：除了 .env 外，還需要修改程式碼中 hardcoded 的 model name（`deepseek-v3-0324`）。
+> 本地 Ollama 模型名稱格式為 `qwen2.5-coder:7b`。
+
+#### 本地模型推薦
+
+| 硬體 | 推薦模型 | 安裝指令 | HumanEval |
+|------|---------|---------|-----------|
+| RTX 3060 Ti 8GB | Qwen2.5-Coder-7B | `ollama pull qwen2.5-coder:7b` | ~72% |
+| MacBook M3 Air 16GB | Qwen2.5-Coder-14B | `ollama pull qwen2.5-coder:14b` | ~85% |
 
 ### Step 4：下載 CodaMosa Benchmark Projects
 
-CodaMosa 是 27 個開源 Python 專案的 benchmark suite，用來評估測試生成工具。
+CodaMosa 原始候選有 34 個 Python 專案，經篩選後最終 benchmark 為 **27 個 projects / 486 個 modules**。
+篩選掉的 7 個（fastapi, keras, luigi, matplotlib, pandas, scrapy, spaCy）因 timeout、100% 初始覆蓋率等原因排除。
+test-apps 目錄裡可能包含這 7 個，但實驗只使用下列 27 個。
 
 ```bash
 cd TestWeaver/codamosa/replication/test-apps

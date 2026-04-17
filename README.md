@@ -1,10 +1,10 @@
-# WebWeaver — Master's Thesis Project
+# TestRefiner — Master's Thesis Project
 
 > 基於 [TestWeaver (ICSE 2026)](https://github.com/FSoft-AI4Code/TestWeaver) 延伸，研究如何提升 LLM-based test generation 的 code coverage。
 
 ## 研究概述
 
-**題目**：WebWeaver - Context-Aware LLM-Based Test Generation via Bidirectional Slicing and Iterative Refinement
+**題目**：TestRefiner - Context-Aware LLM-Based Test Generation via Bidirectional Slicing and Iterative Refinement
 
 **兩個核心方向**：
 1. **Bidirectional Slicing** — 在 TestWeaver 的 backward slicing 基礎上加入 forward slicing，讓 LLM 同時理解目標行的上游依賴（怎麼到達）和下游影響（到達後會發生什麼）
@@ -366,7 +366,7 @@ master-thesis/
 │       ├── scripts/modules_base_and_name.csv  ← 486 modules 對應表
 │       └── test-apps/     ← 27 個 benchmark projects
 │
-└── WebWeaver/             ← [待建立] 改進版本
+└── TestRefiner/             ← [待建立] 改進版本
 ```
 
 ---

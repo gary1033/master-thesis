@@ -55,3 +55,12 @@ TestWeaver/cache/
 
 # Claude settings (local per-machine)
 .claude/
+
+# API keys
+key.txt
+
+# Python venv
+.venv/
+
+# Office lock/temp files
+~$*

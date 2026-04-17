@@ -1,0 +1,32 @@
+Please write a test method for the class '{class_name}' given the following program under test. Your answer should contain only one test input.
+
+You are provided with the program under test. The code has been reduced via **bidirectional slicing** around line {lineno}: it contains both the **upstream context** (statements whose values flow into the target line) and the **downstream impact** (statements that use or observe the target line's effects). Use both directions to understand what inputs drive the target and what observable behaviour the test should assert on.
+
+----
+{program}
+----
+
+The code above fails to reach the line {lineno}, which is marked by the tag <TARGET LINE> ... </TARGET LINE>.
+
+<instructions>
+
+1. Inspect the **upstream** statements (before the target) to identify the inputs, branching conditions, and state required to reach line `{lineno}`.
+2. Inspect the **downstream** statements (after the target) to identify the observable side effects or return values you can assert on.
+3. Describe a **step-by-step strategy** that reaches line `{lineno}` and then verifies the downstream behaviour.
+4. Generate a **new test case** that triggers execution of line `{lineno}`.
+
+Your generated test case should start with the following template:
+
+```python
+def test_{class_name}():
+    solution =
+    assert solution.
+```
+
+Please structure your response in two parts:
+- Wrap your **step-by-step reasoning** inside `<thinking>` tags.
+- Wrap the final **Python test case** inside `<answer>` tags, using backticks.
+
+Note: If the class under test is an abstract class (i.e., it has abstract methods), do NOT instantiate it directly in your test. Instead, create a subclass that implements all abstract methods before instantiating, or only test static/class methods without instantiation.
+
+</instructions>

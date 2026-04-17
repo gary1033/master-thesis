@@ -1,4 +1,4 @@
-# CLAUDE.md
+# AGENTS.md
 
 ## 專案概述
 
@@ -72,8 +72,8 @@
 ## 目錄結構
 
 ```
-claude heartbeat/
-├── CLAUDE.md              ← 本檔案
+Codex heartbeat/
+├── AGENTS.md              ← 本檔案
 ├── .env                   ← API keys（不上傳 git）
 ├── .gitignore
 ├── TestWeaver/            ← TestWeaver 原版 repo
